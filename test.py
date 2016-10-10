@@ -4,6 +4,7 @@ import unittest
 import tile
 import waits
 
+
 # 为了简化手牌信息输入, 这里使用函数将字符串转换为手牌
 # 如 123 234 555 11 22
 #    前三个是数牌花色, 分别是 123 各一张, 555 各一张, 3 三张
@@ -13,7 +14,7 @@ import waits
 def str2hand_tiles(s):
     suits = s.split(' ')
 
-    tiles = tile.HandTiles()
+    tiles = tile.Tiles()
     for i in xrange(3):
         if suits[i] != '-':
             for s in suits[i]:
@@ -27,6 +28,7 @@ def str2hand_tiles(s):
         for s in suits[4]:
             tiles.dragon.add_rank(int(s) - 1)
     return tiles
+
 
 # 同样为了简化代码, 将字符串变成牌的集合, 各部分与上面的函数意义一致
 def str2tile_set(s):
@@ -46,6 +48,7 @@ def str2tile_set(s):
         for s in suits[4]:
             tiles.add(tile.Tile(tile.DRAGON_SUIT, int(s) - 1))
     return tiles
+
 
 NO_TILE = '- - - - -'
 
@@ -93,3 +96,8 @@ class Waits(unittest.TestCase):
         self.assertWait('11 11234567 - 111 -', '1 1 - - -')
         self.assertWait('11 11123456 - 111 -', '1 147 - - -')
         self.assertWait('11 11123 - 111222 -', '1 14 - - -')
+
+
+tiles = str2hand_tiles('1112345678999 - - - -')
+print tiles.list_tile()
+print (tile.Mahjong() - tiles).list_tiles()

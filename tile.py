@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 # 牌
+import copy
+from itertools import combinations
+
+
 class Tile(object):
     def __init__(self, suit, rank):
         self.suit = suit  # 花色: 用 0, 1, 2, 3, 4 表示
@@ -17,13 +21,16 @@ class Tile(object):
     def __repr__(self):
         return (self.suit, self.rank + 1).__repr__()
 
+    def int(self):
+        return self.suit * 10 + self.rank + 1
+
 
 # 一个花色里的牌
 class TilesSuite(object):
-    def __init__(self, count, suit):
+    def __init__(self, count, suit, tile_count=0):
         # 这个数字表示个数
         # 比如手牌是 2 个二万 3 个三万, 那么这个数组会是 [0, 2, 3, 0, 0, 0, 0, 0, 0]
-        self.rank_count = [0] * count
+        self.rank_count = [tile_count] * count
         self.suit = suit
 
     def count(self, rank):
@@ -51,13 +58,28 @@ class TilesSuite(object):
     def total(self):
         return sum(self.rank_count)
 
+    def __sub__(self, other):
+        assert self.suit == other.suit
+        assert len(self.rank_count) == len(other.rank_count)
+        result = copy.deepcopy(self)
+        for i, v in enumerate(other.rank_count):
+            result.rank_count[i] -= v
+        return result
+
+    def __add__(self, other):
+        assert self.suit == other.suit
+        assert len(self.rank_count) == len(other.rank_count)
+        result = copy.deepcopy(self)
+        for i, v in enumerate(other.rank_count):
+            result.rank_count[i] += v
+        return result
+
 
 WIND_SUIT = 3  # 如之前提到的, 风牌的花色值为 3
 DRAGON_SUIT = 4  # 三元牌的花色值为 4
 
 
-# 一副手牌
-class HandTiles(object):
+class Tiles(object):
     def __init__(self):
         # 三种数牌个数量分布
         self.numerics = [TilesSuite(9, i) for i in xrange(3)]
@@ -73,3 +95,41 @@ class HandTiles(object):
     def list_tiles(self):
         return (sum([self.numerics[i].list_tiles() for i in xrange(3)], []) +
                 self.wind.list_tiles() + self.dragon.list_tiles())
+
+    def list_tile(self):
+        tile_list = []
+        for t in self.list_tiles():
+            tile_list.extend([t[0].int()] * t[1])
+        return tile_list
+
+    def combinations(self, n):
+        return combinations(self.list_tile(), n)
+
+    def __sub__(self, other):
+        assert len(self.numerics) == 3 and len(other.numerics) == 3
+        result = Tiles()
+        for i in range(3):
+            result.numerics[i] = self.numerics[i] - other.numerics[i]
+        result.wind = self.wind - other.wind
+        result.dragon = self.dragon - other.dragon
+        return result
+
+    def __add__(self, other):
+        assert len(self.numerics) == 3 and len(other.numerics) == 3
+        result = Tiles()
+        for i in range(3):
+            result.numerics = self.numerics + other.numerics
+        result.wind = self.wind + other.wind
+        result.dragon = self.dragon + other.dragon
+        return result
+
+
+# 桌牌
+class Mahjong(Tiles):
+    def __init__(self):
+        # 三种数牌个数量分布
+        self.numerics = [TilesSuite(9, i, 4) for i in xrange(3)]
+        # 风牌的数量分布
+        self.wind = TilesSuite(4, WIND_SUIT)
+        # 三元牌的数量分布
+        self.dragon = TilesSuite(3, DRAGON_SUIT)
