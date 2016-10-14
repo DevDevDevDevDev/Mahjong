@@ -98,6 +98,30 @@ class Waits(unittest.TestCase):
         self.assertWait('11 11123 - 111222 -', '1 14 - - -')
 
 
-tiles = str2hand_tiles('1112345678999 - - - -')
-print tiles.list_tile()
-print (tile.Mahjong() - tiles).list_tiles()
+tiles = str2hand_tiles('13579 11355799 - - -')
+# print tiles.list_tile()
+# print (tile.Mahjong() - tiles).list_tiles()
+
+wall = (tile.Mahjong() - tiles - str2hand_tiles('- 111122223333444455556666777788889999 - - -'))
+cache = {}
+for drawables in set(wall.combinations(3)):
+    for drawable in drawables:
+        tiles.numerics[drawable / 10].add_rank(drawable % 10 - 1)
+
+    for hand_set in set(tiles.combinations(tiles.total() - 3)):
+        list_tile = tiles.list_tile()
+        for i in hand_set:
+            list_tile.remove(i)
+
+        if len(set(drawables).intersection(list_tile)) != 0:
+            continue
+        hand_tiles = tile.Tiles()
+        for i in hand_set:
+            hand_tiles.numerics[i / 10].add_rank(i % 10 - 1)
+        waits_ = waits.waits(hand_tiles)
+        if waits_ and len(waits_) > 0:
+            print tiles.list_tile()
+            print "Draw: %s  Discard: %s" % (drawables, (tiles - hand_tiles).list_tile())
+            print waits_
+    for drawable in drawables:
+        tiles.numerics[drawable / 10].remove_rank(drawable % 10 - 1)
